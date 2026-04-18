@@ -25,7 +25,7 @@ import taskRoutes from "./routes/task.route";
 const app = express();
 
 // REQUIRED FOR RENDER: Tells Express to trust the proxy load balancer
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 const BASE_PATH = config.BASE_PATH;
 
 const server = http.createServer(app);
