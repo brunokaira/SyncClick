@@ -24,7 +24,7 @@ import taskRoutes from "./routes/task.route";
 
 const app = express();
 
-// REQUIRED FOR RENDER: Tells Express to trust the proxy load balancer
+
 app.set("trust proxy", true);
 const BASE_PATH = config.BASE_PATH;
 
@@ -58,17 +58,16 @@ io.on("connection", (socket) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// FIXED: The Cross-Domain Cookie Configuration
+
 app.use(
   session({
     name: "session",
     keys: [config.SESSION_SECRET],
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    // The exact fixes required for Vercel -> Render communication:
     secure: config.NODE_ENV === "production",
     sameSite: config.NODE_ENV === "production" ? "none" : "lax",
-    partitioned: config.NODE_ENV === "production",
+   
   })
 );
 
