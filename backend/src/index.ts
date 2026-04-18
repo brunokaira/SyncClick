@@ -23,11 +23,12 @@ import projectRoutes from "./routes/project.route";
 import taskRoutes from "./routes/task.route";
 
 const app = express();
+
+// REQUIRED FOR RENDER: Tells Express to trust the proxy load balancer
+app.set("trust proxy", 1);
 const BASE_PATH = config.BASE_PATH;
 
-
 const server = http.createServer(app);
-
 
 export const io = new Server(server, {
   cors: {
@@ -39,13 +40,11 @@ export const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log(`🔌 User connected: ${socket.id}`);
 
-
   socket.on("join-workspace", (workspaceId) => {
     socket.join(workspaceId);
     console.log(`Socket ${socket.id} joined workspace: ${workspaceId}`);
   });
 
-  
   socket.on("leave-workspace", (workspaceId) => {
     socket.leave(workspaceId);
     console.log(`Socket ${socket.id} left workspace: ${workspaceId}`);
@@ -56,19 +55,20 @@ io.on("connection", (socket) => {
   });
 });
 
-
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: true }));
 
+// FIXED: The Cross-Domain Cookie Configuration
 app.use(
   session({
     name: "session",
     keys: [config.SESSION_SECRET],
     maxAge: 24 * 60 * 60 * 1000,
-    secure: config.NODE_ENV === "production",
     httpOnly: true,
-    sameSite: "lax",
+    // The exact fixes required for Vercel -> Render communication:
+    secure: config.NODE_ENV === "production",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
+    partitioned: config.NODE_ENV === "production",
   })
 );
 
